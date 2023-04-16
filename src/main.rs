@@ -1,3 +1,7 @@
+mod cli;
+
 fn main() {
-    println!("Hello, world!");
+    let cli = cli::parse();
+
+    println!("{:?}", cli);
 }
