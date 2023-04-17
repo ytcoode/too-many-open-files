@@ -2,8 +2,10 @@ use std::net::SocketAddr;
 
 use clap::Parser;
 
+mod util;
+
 #[derive(Parser, Debug)]
-#[command(version, about)]
+#[command(version, about, after_help = util::AFTER_HELP)]
 #[group(required = true, args = ["server", "client"])]
 pub struct Cli {
     #[command(flatten)]
@@ -26,7 +28,7 @@ pub struct Server {
         value_name = "ADDR",
         default_value = "0.0.0.0:9999"
     )]
-    pub addr: SocketAddr,
+    pub bind_to: SocketAddr,
 }
 
 #[derive(clap::Args, Debug)]
@@ -37,7 +39,7 @@ pub struct Client {
 
     /// Specify the server address that the client will connect to
     #[arg(id = "client-connect-to", long, value_name = "ADDR")]
-    pub addr: Option<SocketAddr>,
+    pub connect_to: Option<SocketAddr>,
 }
 
 pub fn parse() -> Cli {

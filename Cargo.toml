@@ -8,4 +8,5 @@ license = "MIT"
 
 [dependencies]
 clap = { version = "4.2.2", features = ["derive"] }
-tokio = { version = "1.27.0" }
+color-print = "0.3.4"
+tokio = { version = "1.27.0", features = ["full"] }
