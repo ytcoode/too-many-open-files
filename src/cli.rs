@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 
 use clap::Parser;
+use tracing::{debug};
 
 mod util;
 
@@ -43,5 +44,7 @@ pub struct Client {
 }
 
 pub fn parse() -> Cli {
-    Cli::parse()
+    let cli = Cli::parse();
+    debug!(?cli);
+    cli
 }

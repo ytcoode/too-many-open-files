@@ -10,3 +10,5 @@ license = "MIT"
 clap = { version = "4.2.2", features = ["derive"] }
 color-print = "0.3.4"
 tokio = { version = "1.27.0", features = ["full"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.16", features = ["env-filter"] }
