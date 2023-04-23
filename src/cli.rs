@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 
 use clap::Parser;
-use tracing::{debug};
+use tracing::debug;
 
 mod util;
 
@@ -9,6 +9,10 @@ mod util;
 #[command(version, about, after_help = util::AFTER_HELP)]
 #[group(required = true, args = ["server", "client"])]
 pub struct Cli {
+    /// Start the client or server in async mode, using epoll in Linux under the hood
+    #[arg(long)]
+    pub r#async: bool,
+
     #[command(flatten)]
     pub server: Server,
 

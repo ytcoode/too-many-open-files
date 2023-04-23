@@ -5,8 +5,13 @@ pub const AFTER_HELP: &str = color_print::cstr!(
 
     <bold>./too-many-open-files --server --server-bind-to=127.0.0.1:9999</bold>
 
+  Start the server in async mode:
+
+    <bold>./too-many-open-files --server --server-bind-to=127.0.0.1:9999 --async</bold>
+
   Start the client:
 
     <bold>./too-many-open-files --client --client-connect-to=127.0.0.1:9999\n</bold>
+
 "
 );

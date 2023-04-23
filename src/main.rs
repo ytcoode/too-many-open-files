@@ -1,23 +1,36 @@
-use tokio::signal;
+use std::{thread, time::Duration};
+
+use tokio::{signal, time};
+use tracing::info;
 
 mod cli;
 mod client;
+mod init;
 mod server;
-mod tracing;
 
-#[tokio::main]
-async fn main() {
-    tracing::init();
+fn main() {
+    init::init();
 
     let cli = cli::parse();
 
-    if cli.server.enabled {
-        tokio::spawn(server::start(cli.server.bind_to));
-    }
+    let rt = tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .unwrap();
 
-    if cli.client.enabled {
-        tokio::spawn(client::start(cli.client.connect_to.unwrap()));
-    }
+    rt.block_on(async {
+        if cli.server.enabled {
+            server::start(cli.server.bind_to, cli.r#async);
+        }
 
-    signal::ctrl_c().await.expect("signal::ctrl_c");
+        if cli.client.enabled {
+            tokio::spawn(client::start(cli.client.connect_to.unwrap()));
+        }
+
+        info!("Press Ctrl-C to shut down");
+        signal::ctrl_c().await.expect("signal::ctrl_c");
+    });
+
+    rt.shutdown_background();
+    info!("Shutdown completed successfully");
 }
