@@ -41,19 +41,22 @@ pub fn start(addr: SocketAddr) {
 ))]
 fn handle_client(s: TcpStream, counter: Arc<AtomicUsize>) {
     info!(
-        "Accepted a connection. There are currently {} established connections.",
+        "Accepted a connection. The number of currently established connections is {}.",
         counter.fetch_add(1, Ordering::Relaxed) + 1
     );
 
     for b in s.bytes() {
         match b {
             Ok(_) => break,
-            Err(e) => error!("read: {:?}", e),
+            Err(e) => error!(
+                "An error occurred while attempting to read a byte from the connection: {}",
+                e
+            ),
         }
     }
 
     info!(
-        "Closed a connection. There are currently {} established connections.",
+        "Closed a connection. The number of currently established connections is {}.",
         counter.fetch_sub(1, Ordering::Relaxed) - 1
     );
 }
