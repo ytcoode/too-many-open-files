@@ -1,34 +1,40 @@
-use std::net::SocketAddr;
+use std::{
+    io::ErrorKind,
+    net::SocketAddr,
+    process,
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
+};
 
 use tokio::{
-    io,
+    io::{AsyncReadExt},
     net::{TcpListener, TcpStream},
 };
-use tracing::{debug, error, info, instrument};
+use tracing::{error, info, instrument};
 
 pub async fn start(addr: SocketAddr) {
     let listener = TcpListener::bind(addr).await.expect("TcpListener::bind");
 
     info!(
-        "Started listening for TCP connections on the address {}",
-        listener.local_addr().expect("listener.local_addr")
+        pid = process::id(),
+        "Started listening for connections on the address {}.",
+        listener.local_addr().expect("listener.local_addr"),
     );
 
-    let mut err_count = 0;
-    let mut ok_count = 0;
+    let counter = Arc::new(AtomicUsize::new(0));
 
     loop {
         match listener.accept().await {
-            Err(e) => {
-                println!("An error occurred while calling listener.accept: {}", e);
-                err_count += 1;
-            }
             Ok((s, _)) => {
-                tokio::spawn(process_socket(s));
-                ok_count += 1;
+                tokio::spawn(handle_client(s, counter.clone()));
+            }
+
+            Err(e) => {
+                error!("An error occurred while calling listener.accept: {}", e);
             }
         }
-        println!("ok: {}, err: {}", ok_count, err_count);
     }
 }
 
@@ -36,12 +42,23 @@ pub async fn start(addr: SocketAddr) {
     peer_addr = %s.peer_addr().unwrap(),
     local_addr = %s.local_addr().unwrap(),
 ))]
-async fn process_socket(mut s: TcpStream) {
-    debug!("new connection");
-    let (mut r, mut w) = s.split();
+async fn handle_client(mut s: TcpStream, counter: Arc<AtomicUsize>) {
+    info!(
+        "Accepted a connection. The number of currently established connections is {}.",
+        counter.fetch_add(1, Ordering::Relaxed) + 1
+    );
 
-    match io::copy(&mut r, &mut w).await {
-        Ok(n) => debug!("Copied {} bytes", n),
-        Err(e) => error!("An error occurred: {}", e),
+    match s.read_u8().await {
+        Ok(_) => (),
+        Err(e) if e.kind() == ErrorKind::UnexpectedEof => (),
+        Err(e) => error!(
+            "An error occurred while attempting to read a byte from the connection: {}",
+            e
+        ),
     }
+
+    info!(
+        "Closed the connection. The number of currently established connections is {}.",
+        counter.fetch_sub(1, Ordering::Relaxed) - 1
+    );
 }

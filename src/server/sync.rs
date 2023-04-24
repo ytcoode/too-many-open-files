@@ -56,7 +56,7 @@ fn handle_client(s: TcpStream, counter: Arc<AtomicUsize>) {
     }
 
     info!(
-        "Closed a connection. The number of currently established connections is {}.",
+        "Closed the connection. The number of currently established connections is {}.",
         counter.fetch_sub(1, Ordering::Relaxed) - 1
     );
 }
