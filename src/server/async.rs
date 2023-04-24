@@ -6,13 +6,15 @@ use std::{
         atomic::{AtomicUsize, Ordering},
         Arc,
     },
+    time::Duration,
 };
 
 use tokio::{
-    io::{AsyncReadExt},
+    io::AsyncReadExt,
     net::{TcpListener, TcpStream},
+    time,
 };
-use tracing::{error, info, instrument};
+use tracing::{debug, error, info, instrument};
 
 pub async fn start(addr: SocketAddr) {
     let listener = TcpListener::bind(addr).await.expect("TcpListener::bind");
@@ -30,9 +32,9 @@ pub async fn start(addr: SocketAddr) {
             Ok((s, _)) => {
                 tokio::spawn(handle_client(s, counter.clone()));
             }
-
             Err(e) => {
                 error!("An error occurred while calling listener.accept: {}", e);
+                time::sleep(Duration::from_secs(1)).await;
             }
         }
     }
@@ -50,7 +52,9 @@ async fn handle_client(mut s: TcpStream, counter: Arc<AtomicUsize>) {
 
     match s.read_u8().await {
         Ok(_) => (),
-        Err(e) if e.kind() == ErrorKind::UnexpectedEof => (),
+        Err(e) if e.kind() == ErrorKind::UnexpectedEof => {
+            debug!("Connection closed by remote peer")
+        }
         Err(e) => error!(
             "An error occurred while attempting to read a byte from the connection: {}",
             e

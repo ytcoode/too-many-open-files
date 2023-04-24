@@ -7,9 +7,10 @@ use std::{
         Arc,
     },
     thread,
+    time::Duration,
 };
 
-use tracing::{error, info, instrument};
+use tracing::{debug, error, info, instrument};
 
 pub fn start(addr: SocketAddr) {
     let listener = TcpListener::bind(addr).expect("TcpListener::bind");
@@ -30,6 +31,7 @@ pub fn start(addr: SocketAddr) {
             }
             Err(e) => {
                 error!("An error occurred while calling listener.accept: {}", e);
+                thread::sleep(Duration::from_secs(1));
             }
         }
     }
@@ -45,14 +47,13 @@ fn handle_client(s: TcpStream, counter: Arc<AtomicUsize>) {
         counter.fetch_add(1, Ordering::Relaxed) + 1
     );
 
-    for b in s.bytes() {
-        match b {
-            Ok(_) => break,
-            Err(e) => error!(
-                "An error occurred while attempting to read a byte from the connection: {}",
-                e
-            ),
-        }
+    match s.bytes().next() {
+        None => debug!("Connection closed by remote peer"),
+        Some(Ok(_)) => (),
+        Some(Err(e)) => error!(
+            "An error occurred while attempting to read a byte from the connection: {}",
+            e
+        ),
     }
 
     info!(

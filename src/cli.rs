@@ -39,12 +39,17 @@ pub struct Server {
 #[derive(clap::Args, Debug)]
 pub struct Client {
     /// Start the client
-    #[arg(id = "client", long, requires = "client-connect-to")]
+    #[arg(id = "client", long)]
     pub enabled: bool,
 
     /// Specify the server address that the client will connect to
-    #[arg(id = "client-connect-to", long, value_name = "ADDR")]
-    pub connect_to: Option<SocketAddr>,
+    #[arg(
+        id = "client-connect-to",
+        long,
+        value_name = "ADDR",
+        default_value = "127.0.0.1:9999"
+    )]
+    pub connect_to: SocketAddr,
 }
 
 pub fn parse() -> Cli {

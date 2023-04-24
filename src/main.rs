@@ -23,7 +23,7 @@ fn main() {
         }
 
         if cli.client.enabled {
-            tokio::spawn(client::start(cli.client.connect_to.unwrap()));
+            client::start(cli.client.connect_to, cli.r#async);
         }
 
         info!("Press Ctrl-C to shut down");
