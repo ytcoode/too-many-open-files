@@ -34,7 +34,7 @@ pub async fn start(addr: SocketAddr) {
 
 #[instrument(skip_all, fields(
     peer_addr = %s.peer_addr().unwrap(),
-    local_addr = %s.local_addr().unwrap()
+    local_addr = %s.local_addr().unwrap(),
 ))]
 async fn process_socket(mut s: TcpStream) {
     debug!("new connection");

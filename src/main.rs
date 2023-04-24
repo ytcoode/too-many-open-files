@@ -1,12 +1,11 @@
-use std::{thread, time::Duration};
-
-use tokio::{signal, time};
+use tokio::signal;
 use tracing::info;
 
 mod cli;
 mod client;
 mod init;
 mod server;
+mod util;
 
 fn main() {
     init::init();
