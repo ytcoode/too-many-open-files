@@ -30,11 +30,12 @@ pub async fn start(addr: SocketAddr) {
     loop {
         match listener.accept().await {
             Ok((s, _)) => {
-                tokio::spawn(handle_client(s, counter.clone()));
+                tokio::spawn(server(s, counter.clone()));
             }
             Err(e) => {
-                error!("An error occurred while calling listener.accept: {}", e);
-                time::sleep(Duration::from_secs(1)).await;
+                error!("An error occurred while calling listener.accept: {}, The number of currently established connnections is {}.",
+		       e, counter.load(Ordering::Relaxed));
+                time::sleep(Duration::from_secs(5)).await;
             }
         }
     }
@@ -44,14 +45,14 @@ pub async fn start(addr: SocketAddr) {
     peer_addr = %s.peer_addr().unwrap(),
     local_addr = %s.local_addr().unwrap(),
 ))]
-async fn handle_client(mut s: TcpStream, counter: Arc<AtomicUsize>) {
+async fn server(mut s: TcpStream, counter: Arc<AtomicUsize>) {
     info!(
-        "Accepted a connection. The number of currently established connections is {}.",
+        "Successfully accepted a connection. The number of currently established connections is {}.",
         counter.fetch_add(1, Ordering::Relaxed) + 1
     );
 
     match s.read_u8().await {
-        Ok(_) => (),
+        Ok(_) => unreachable!(),
         Err(e) if e.kind() == ErrorKind::UnexpectedEof => {
             debug!("Connection closed by remote peer")
         }
